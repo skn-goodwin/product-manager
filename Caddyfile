@@ -1,0 +1,14 @@
+localhost {
+  header / {
+    Referrer-Policy "same-origin"
+    Strict-Transport-Security "max-age=15768000;"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    X-XSS-Protection "1; mode=block"
+    -Server
+  }
+
+  encode gzip
+
+  reverse_proxy product_manager_1:9443 product_manager_2:9443
+}

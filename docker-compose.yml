@@ -1,0 +1,71 @@
+version: '3.7'
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - anet
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./data/mongodb:/data/db"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_USR}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PWD}"
+
+  product_manager_1:
+    image: "${IMAGE}"
+    container_name: product_manager_1
+    restart: unless-stopped
+    user: "$UID:$GID"
+    ports:
+      - 9441:9443
+    volumes:
+      - "./product.csv:/product.csv"
+    environment:
+      SERVER_ADDR:  "${SERVER_ADDR}"
+      DB_URI:       "${DB_URI}"
+      GATEWAY_ADDR: "${GATEWAY_ADDR}"
+      IS_LOCAL:     "${IS_LOCAL}"
+    command: sh -c "/app/product-manager"
+    networks:
+      - anet
+
+  product_manager_2:
+    image: "${IMAGE}"
+    container_name: product_manager_2
+    restart: unless-stopped
+    user: "$UID:$GID"
+    ports:
+      - 9442:9443
+    volumes:
+      - "./product.csv:/product.csv"
+    environment:
+      SERVER_ADDR:  "${SERVER_ADDR}"
+      DB_URI:       "${DB_URI}"
+      GATEWAY_ADDR: "${GATEWAY_ADDR}"
+      IS_LOCAL:     "${IS_LOCAL}"
+    command: sh -c "/app/product-manager"
+    networks:
+      - anet
+
+  proxy:
+    image: caddy:2-alpine
+    container_name: proxy
+    restart: unless-stopped
+    user: "$UID:$GID"
+    volumes:
+      - ./data/caddy/data:/data
+      - ./data/caddy/config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - anet
+
+networks:
+  anet:
+    external: true
